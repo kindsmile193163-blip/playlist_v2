@@ -110,8 +110,8 @@ html, body {
   transform-origin: 20px 20px;
   transition: transform 1.1s cubic-bezier(.4,0,.2,1);
 }
-.tonearm-wrap.parked  { transform: rotate(-40deg); }
-.tonearm-wrap.playing { transform: rotate(-10deg); }
+.tonearm-wrap.parked  { transform: rotate(-42deg); }
+.tonearm-wrap.playing { transform: rotate(2deg); }
 .tonearm-base {
   width: 40px; height: 40px; border-radius: 50%;
   background: #e8e4dc; border: 1.5px solid #ccc8c0;
@@ -310,7 +310,13 @@ html, body {
   <div class="playlist-shell">
     <div class="pl-head">
       <span class="pl-title">Track list</span>
-      <span class="pl-count" id="pl-cnt">0 tracks</span>
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <span class="pl-count" id="pl-cnt">0 tracks</span>
+        <button id="retry-btn" onclick="init()" style="
+          display:none;background:#f5f3f0;border:1px solid #d8d4ce;
+          border-radius:6px;padding:2px 9px;font-size:9px;color:#6a6460;
+          cursor:pointer;font-family:inherit;letter-spacing:.5px;">↺ retry</button>
+      </div>
     </div>
     <div class="pl-list" id="pl-list">
       <div class="pl-empty">loading...</div>
@@ -338,8 +344,8 @@ html, body {
   3. CD 레이블 이미지: 위 HTML의 <img src="..."> 부분을 수정
 ================================================================ */
 const CONFIG = {
-  PLAYLIST_URL: 'https://www.youtube.com/playlist?list=PL-fFxHePeck6gjfzexQo4ybcf1uieBPRX&si=AimoNYG6qZMc1jnz',
-  API_KEY:      'AIzaSyDanv3ZS7kgAxAZUwKtxF4__KqdDY6nAUI',
+  PLAYLIST_URL: 'https://www.youtube.com/playlist?list=PLxxxxxxx',
+  API_KEY:      'YOUR_API_KEY_HERE',
 };
 /* ================================================================ */
 
@@ -350,9 +356,15 @@ let angle = 0, rafId = null;
 function onYouTubeIframeAPIReady() {
   player = new YT.Player('yt-player', {
     height: '1', width: '1',
-    playerVars: { autoplay: 0, controls: 0, origin: location.origin || '' },
+    playerVars: {
+        autoplay: 0,
+        controls: 0,
+        origin: 'https://kindsmile193163-blip.github.io',
+        enablejsapi: 1,
+        widget_referrer: 'https://kindsmile193163-blip.github.io'
+      },
     events: {
-      onReady:       () => { setVol(80); init(); },
+      onReady: () => { setVol(80); init(); },
       onStateChange: onSC,
       onError:       () => setStatus('error', false)
     }
@@ -504,6 +516,8 @@ function fmt(s) {
 function setStatus(txt, active) {
   document.getElementById('lid-txt').textContent = txt;
   document.getElementById('led').className = 'led' + (active ? ' on' : '');
+  const rb = document.getElementById('retry-btn');
+  if (rb) rb.style.display = (!active && txt !== 'ready' && txt !== 'paused' && txt !== 'now playing') ? 'inline-block' : 'none';
 }
 
 function spinDisc() {
