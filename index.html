@@ -1,7 +1,16 @@
-
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CD Player</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #fff; font-family: 'Georgia', serif; }
+
+html, body {
+  background: #fff;
+  font-family: 'Georgia', 'Times New Roman', serif;
+}
 
 .page {
   width: 100%; max-width: 420px; margin: 0 auto;
@@ -42,7 +51,7 @@ body { background: #fff; font-family: 'Georgia', serif; }
 .lid-status { display: flex; align-items: center; gap: .4rem; }
 .led {
   width: 7px; height: 7px; border-radius: 50%;
-  background: #c8c4bc; border: 1px solid #b0ac a4;
+  background: #c8c4bc; border: 1px solid #b0aca4;
 }
 .led.on { background: #e8a050; animation: ledpulse .9s ease-in-out infinite; }
 @keyframes ledpulse { 0%,100%{opacity:1} 50%{opacity:.3} }
@@ -79,7 +88,7 @@ body { background: #fff; font-family: 'Georgia', serif; }
   position: absolute; border-radius: 50%;
   border: 0.5px solid rgba(0,0,0,0.08);
   top: 50%; left: 50%; transform: translate(-50%,-50%);
-  pointer-events: none;
+  pointer-events: none; z-index: 1;
 }
 .hub {
   position: absolute; top: 50%; left: 50%;
@@ -123,8 +132,7 @@ body { background: #fff; font-family: 'Georgia', serif; }
   position: absolute; bottom: -5px; left: 50%;
   transform: translateX(-50%) rotate(-24deg);
   width: 14px; height: 8px;
-  background: #ccc8c0; border-radius: 2px;
-  border: 1px solid #a8a49c;
+  background: #ccc8c0; border-radius: 2px; border: 1px solid #a8a49c;
 }
 .tonearm-needle {
   position: absolute; bottom: -12px; left: 50%;
@@ -156,22 +164,22 @@ body { background: #fff; font-family: 'Georgia', serif; }
   transition: left .4s linear;
 }
 .time-row { display: flex; justify-content: space-between; }
-.time-txt { font-size: 9px; color: #b0ac a8; letter-spacing: .5px; font-variant-numeric: tabular-nums; }
+.time-txt { font-size: 9px; color: #b0aca8; letter-spacing: .5px; font-variant-numeric: tabular-nums; }
 
-/* ── 컨트롤 (재생버튼만) ── */
+/* ── 컨트롤 ── */
 .ctrl-row {
   display: flex; align-items: center; justify-content: center; gap: .55rem;
   margin-top: .3rem;
 }
 .cbtn {
   background: #f5f3f0; border: 1px solid #d8d4ce;
-  border-radius: 12px; cursor: pointer;
+  border-radius: 50%; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   color: #6a6460; transition: background .12s;
 }
-.cbtn:hover { background: #eceae6; }
+.cbtn:hover  { background: #eceae6; }
 .cbtn:active { transform: scale(.96); }
-.cbtn.sm { width: 32px; height: 32px; border-radius: 50%; }
+.cbtn.sm { width: 32px; height: 32px; }
 .cbtn.lg { width: 50px; height: 50px; border-radius: 14px; }
 
 /* ── 플레이리스트 ── */
@@ -200,55 +208,38 @@ body { background: #fff; font-family: 'Georgia', serif; }
 .pl-name { font-size: 10px; color: #3a3630; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pl-dur  { font-size: 9px; color: #c0bcb4; font-variant-numeric: tabular-nums; }
 .pl-empty { padding: 1.2rem; text-align: center; font-size: 11px; color: #c0bcb4; }
-
-/* ── URL 입력 (하단 미니) ── */
-.url-row-mini {
-  width: 100%; display: flex; gap: .5rem; margin-top: .2rem;
-}
-.url-input-mini {
-  flex: 1; background: #faf8f5; border: 1px solid #dedad4;
-  border-radius: 8px; padding: 7px 11px;
-  font-size: 10px; color: #3a3630; font-family: inherit; outline: none;
-  transition: border-color .15s;
-}
-.url-input-mini::placeholder { color: #c0bcb4; }
-.url-input-mini:focus { border-color: #9a9490; }
-.url-btn-mini {
-  background: #f0ece6; border: 1px solid #d4d0ca;
-  border-radius: 8px; padding: 7px 14px;
-  font-size: 10px; font-weight: 600; color: #6a6460;
-  cursor: pointer; font-family: inherit; letter-spacing: .3px;
-  white-space: nowrap; transition: background .12s;
-}
-.url-btn-mini:hover { background: #e8e4de; }
 </style>
-
+</head>
+<body>
 <div class="page">
-  <!-- 플레이어 본체 -->
+
   <div class="player">
     <div class="coral-strip"></div>
     <div class="player-inner">
 
-      <!-- 투명 덮개 -->
       <div class="lid">
         <div class="lid-hinge"></div>
         <div class="lid-row">
           <div class="lid-status">
             <div class="led" id="led"></div>
-            <span class="lid-txt" id="lid-txt">standby</span>
+            <span class="lid-txt" id="lid-txt">loading...</span>
           </div>
           <span class="lid-brand">transparent · cover</span>
         </div>
       </div>
 
-      <!-- 디스크 + 토네암 -->
       <div class="disc-stage">
         <div class="disc-shadow"></div>
         <div class="disc" id="disc">
           <div class="disc-bg">
-            <!-- 커스텀 레이블 이미지 -->
-            <div class="disc-img-wrap" id="disc-img-wrap">
-              <img id="disc-img" src="https://i.ibb.co/DfxrmJj5/image.jpg"
+            <div class="disc-img-wrap">
+              <!--
+                ✏️  CD 레이블 이미지를 바꾸고 싶다면:
+                src="" 안의 URL을 원하는 이미지 주소로 교체하세요.
+                또는 이미지를 레포지터리에 올리고 src="./cover.jpg" 처럼 쓰면 가장 안정적이에요.
+              -->
+              <img id="disc-img"
+                src="https://i.ibb.co/DfxrmJj5/image.jpg"
                 crossorigin="anonymous"
                 onload="this.classList.add('loaded')"
                 onerror="this.style.display='none'" />
@@ -273,12 +264,10 @@ body { background: #fff; font-family: 'Georgia', serif; }
         </div>
       </div>
 
-      <!-- 마퀴 -->
       <div class="marquee-wrap">
-        <span class="marquee" id="marquee">— load a playlist to begin —</span>
+        <span class="marquee" id="marquee"> </span>
       </div>
 
-      <!-- 프로그레스 -->
       <div class="prog-area">
         <div class="prog-wrap" id="prog-wrap" onclick="seekTo(event)">
           <div class="prog-fill" id="prog-fill" style="width:0%"></div>
@@ -291,15 +280,14 @@ body { background: #fff; font-family: 'Georgia', serif; }
         </div>
       </div>
 
-      <!-- 컨트롤: 이전 / 재생 / 다음 만 -->
       <div class="ctrl-row">
-        <button class="cbtn sm" title="이전 곡" onclick="prevTr()">
+        <button class="cbtn sm" onclick="prevTr()">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
             <path d="M2 2v8M10 2L5 6l5 4V2z" stroke="currentColor" stroke-width="1.4"
               stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <button class="cbtn lg" id="play-btn" onclick="togglePlay()">
+        <button class="cbtn lg" onclick="togglePlay()">
           <svg id="play-ic" width="20" height="20" viewBox="0 0 20 20" fill="none">
             <path d="M5 3l12 7-12 7V3z" stroke="currentColor" stroke-width="1.5"
               stroke-linecap="round" stroke-linejoin="round"/>
@@ -308,7 +296,7 @@ body { background: #fff; font-family: 'Georgia', serif; }
             <path d="M6 3v14M14 3v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
         </button>
-        <button class="cbtn sm" title="다음 곡" onclick="nextTr()">
+        <button class="cbtn sm" onclick="nextTr()">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
             <path d="M10 2v8M2 2l5 4-5 4V2z" stroke="currentColor" stroke-width="1.4"
               stroke-linecap="round" stroke-linejoin="round"/>
@@ -319,23 +307,16 @@ body { background: #fff; font-family: 'Georgia', serif; }
     </div>
   </div>
 
-  <!-- 플레이리스트 -->
   <div class="playlist-shell">
     <div class="pl-head">
       <span class="pl-title">Track list</span>
       <span class="pl-count" id="pl-cnt">0 tracks</span>
     </div>
     <div class="pl-list" id="pl-list">
-      <div class="pl-empty">load a playlist to begin</div>
+      <div class="pl-empty">loading...</div>
     </div>
   </div>
 
-  <!-- URL 입력 (하단) -->
-  <div class="url-row-mini">
-    <input class="url-input-mini" id="url-in" type="text"
-      placeholder="YouTube playlist or video URL..." />
-    <button class="url-btn-mini" onclick="loadPL()">Load</button>
-  </div>
 </div>
 
 <div style="display:none;position:absolute;width:1px;height:1px">
@@ -343,37 +324,124 @@ body { background: #fff; font-family: 'Georgia', serif; }
 </div>
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-let player=null, tracks=[], cur=0;
-let isPlaying=false, progTimer=null;
-let angle=0, rafId=null;
+/* ================================================================
+  ✏️  수정이 필요한 부분은 여기뿐이에요!
 
-function onYouTubeIframeAPIReady(){
-  player = new YT.Player('yt-player',{
-    height:'1', width:'1',
-    playerVars:{autoplay:0, controls:0, origin: location.origin||''},
-    events:{
-      onReady: ()=> setVol(80),
+  1. PLAYLIST_URL : 재생할 유튜브 재생목록 또는 영상 URL
+     - 재생목록:   'https://www.youtube.com/playlist?list=PLxxxxxxx'
+     - 영상+목록:  'https://www.youtube.com/watch?v=xxxxx&list=PLxxxxxxx'
+
+  2. API_KEY : YouTube Data API v3 키
+     - 발급: https://console.cloud.google.com
+       → YouTube Data API v3 → 사용자 인증정보 → API 키 생성
+
+  3. CD 레이블 이미지: 위 HTML의 <img src="..."> 부분을 수정
+================================================================ */
+const CONFIG = {
+  PLAYLIST_URL: 'https://www.youtube.com/playlist?list=PLxxxxxxx',
+  API_KEY:      'YOUR_API_KEY_HERE',
+};
+/* ================================================================ */
+
+let player = null, tracks = [], cur = 0;
+let isPlaying = false, progTimer = null;
+let angle = 0, rafId = null;
+
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('yt-player', {
+    height: '1', width: '1',
+    playerVars: { autoplay: 0, controls: 0, origin: location.origin || '' },
+    events: {
+      onReady:       () => { setVol(80); init(); },
       onStateChange: onSC,
-      onError: ()=> setStatus('error', false)
+      onError:       () => setStatus('error', false)
     }
   });
 }
 
-function onSC(e){
-  const S = YT.PlayerState;
-  if      (e.data===S.PLAYING) setPlaying(true);
-  else if (e.data===S.PAUSED)  setPlaying(false);
-  else if (e.data===S.ENDED)   { setPlaying(false); nextTr(); }
+async function init() {
+  const raw   = CONFIG.PLAYLIST_URL;
+  const listM = raw.match(/[?&]list=([A-Za-z0-9_-]+)/);
+  const vidM  = raw.match(/[?&]v=([A-Za-z0-9_-]+)/);
+
+  // 설정 안 된 경우
+  if (raw.includes('PLxxxxxxx')) {
+    setStatus('URL을 설정해주세요', false);
+    document.getElementById('pl-list').innerHTML =
+      '<div class="pl-empty">index.html 상단 PLAYLIST_URL을 입력해주세요.</div>';
+    return;
+  }
+
+  // 단일 영상
+  if (vidM && !listM) {
+    tracks = [{ id: vidM[1], title: 'Track 01', dur: '' }];
+    renderPL(); setStatus('ready', false); loadTrack(0);
+    return;
+  }
+
+  // API 키 미설정
+  if (CONFIG.API_KEY === 'YOUR_API_KEY_HERE') {
+    setStatus('API 키를 설정해주세요', false);
+    document.getElementById('pl-list').innerHTML =
+      '<div class="pl-empty">index.html 상단 API_KEY를 입력해주세요.</div>';
+    return;
+  }
+
+  setStatus('loading...', true);
+  try {
+    const res  = await fetch(
+      `https://www.googleapis.com/youtube/v3/playlistItems` +
+      `?part=snippet,contentDetails&maxResults=50` +
+      `&playlistId=${listM[1]}&key=${CONFIG.API_KEY}`
+    );
+    const data = await res.json();
+
+    if (data.error) {
+      setStatus('오류: ' + (data.error.message || 'API error'), false);
+      document.getElementById('pl-list').innerHTML =
+        `<div class="pl-empty">API 오류: ${data.error.message}</div>`;
+      return;
+    }
+
+    tracks = data.items.map(item => ({
+      id:    item.contentDetails.videoId,
+      title: item.snippet.title,
+      dur:   ''
+    }));
+
+    // v= 가 있으면 해당 곡부터 시작
+    let startIdx = 0;
+    if (vidM) {
+      const found = tracks.findIndex(t => t.id === vidM[1]);
+      if (found !== -1) startIdx = found;
+    }
+
+    renderPL();
+    setStatus('ready', false);
+    if (tracks.length) loadTrack(startIdx);
+
+  } catch (e) {
+    setStatus('네트워크 오류', false);
+    document.getElementById('pl-list').innerHTML =
+      '<div class="pl-empty">불러오기 실패. 네트워크를 확인해주세요.</div>';
+  }
 }
 
-function setPlaying(v){
+function onSC(e) {
+  const S = YT.PlayerState;
+  if      (e.data === S.PLAYING) setPlaying(true);
+  else if (e.data === S.PAUSED)  setPlaying(false);
+  else if (e.data === S.ENDED)   { setPlaying(false); nextTr(); }
+}
+
+function setPlaying(v) {
   isPlaying = v;
   document.getElementById('play-ic').style.display  = v ? 'none'  : 'block';
   document.getElementById('pause-ic').style.display = v ? 'block' : 'none';
   document.getElementById('led').className = 'led' + (v ? ' on' : '');
   document.getElementById('lid-txt').textContent = v ? 'now playing' : 'paused';
   document.getElementById('arm').className = 'tonearm-wrap ' + (v ? 'playing' : 'parked');
-  if(v){
+  if (v) {
     clearInterval(progTimer);
     progTimer = setInterval(updateProg, 500);
     cancelAnimationFrame(rafId);
@@ -384,131 +452,88 @@ function setPlaying(v){
   }
 }
 
-function togglePlay(){
-  if(!player || !tracks.length) return;
+function togglePlay() {
+  if (!player || !tracks.length) return;
   isPlaying ? player.pauseVideo() : player.playVideo();
 }
 
-function loadTrack(idx){
-  if(!tracks.length || !player) return;
+function loadTrack(idx) {
+  if (!tracks.length || !player) return;
   cur = idx;
   const t = tracks[idx];
   player.loadVideoById(t.id);
-  document.getElementById('track-info').textContent = (idx+1) + ' / ' + tracks.length;
+  document.getElementById('track-info').textContent = (idx + 1) + ' / ' + tracks.length;
   const m = document.getElementById('marquee');
   m.textContent = t.title + '   ';
-  m.className = 'marquee scroll';
+  m.className   = 'marquee scroll';
   setStatus('loading', true);
   renderPL();
 }
 
-function prevTr(){ if(cur > 0) loadTrack(cur - 1); }
-function nextTr(){ if(cur < tracks.length - 1) loadTrack(cur + 1); }
+function prevTr() { if (cur > 0) loadTrack(cur - 1); }
+function nextTr() { if (cur < tracks.length - 1) loadTrack(cur + 1); }
 
-function seekTo(e){
-  if(!player || !tracks.length) return;
+function seekTo(e) {
+  if (!player || !tracks.length) return;
   const r = e.currentTarget.getBoundingClientRect();
-  player.seekTo(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)) * (player.getDuration()||0), true);
+  player.seekTo(
+    Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * (player.getDuration() || 0),
+    true
+  );
 }
 
-function setVol(v){ if(player) player.setVolume(parseInt(v)); }
+function setVol(v) { if (player) player.setVolume(parseInt(v)); }
 
-function updateProg(){
-  if(!player) return;
-  const c = player.getCurrentTime()||0, d = player.getDuration()||1;
-  const p = Math.round(c/d*1000)/10;
+function updateProg() {
+  if (!player) return;
+  const c = player.getCurrentTime() || 0;
+  const d = player.getDuration()    || 1;
+  const p = Math.round(c / d * 1000) / 10;
   document.getElementById('prog-fill').style.width = p + '%';
   document.getElementById('prog-dot').style.left   = p + '%';
   document.getElementById('cur-t').textContent = fmt(c);
-  document.getElementById('dur-t').textContent = fmt(player.getDuration()||0);
+  document.getElementById('dur-t').textContent = fmt(player.getDuration() || 0);
   document.getElementById('lid-txt').textContent = 'now playing';
 }
 
-function fmt(s){ s=Math.floor(s); return Math.floor(s/60)+':'+(s%60<10?'0':'')+(s%60); }
+function fmt(s) {
+  s = Math.floor(s);
+  return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60);
+}
 
-function setStatus(txt, active){
+function setStatus(txt, active) {
   document.getElementById('lid-txt').textContent = txt;
   document.getElementById('led').className = 'led' + (active ? ' on' : '');
 }
 
-function spinDisc(){
-  if(!isPlaying) return;
+function spinDisc() {
+  if (!isPlaying) return;
   angle = (angle + 0.55) % 360;
-  document.getElementById('disc').style.transform = 'rotate('+angle+'deg)';
+  document.getElementById('disc').style.transform = 'rotate(' + angle + 'deg)';
   rafId = requestAnimationFrame(spinDisc);
 }
 
-function renderPL(){
+function renderPL() {
   const el = document.getElementById('pl-list');
-  if(!tracks.length){ el.innerHTML='<div class="pl-empty">load a playlist to begin</div>'; return; }
-  el.innerHTML = tracks.map((t,i)=>
-    `<div class="pl-item${i===cur?' active':''}" onclick="loadTrack(${i})">
-      <span class="pl-num">${String(i+1).padStart(2,'0')}</span>
+  if (!tracks.length) {
+    el.innerHTML = '<div class="pl-empty">트랙이 없습니다.</div>';
+    return;
+  }
+  el.innerHTML = tracks.map((t, i) =>
+    `<div class="pl-item${i === cur ? ' active' : ''}" onclick="loadTrack(${i})">
+      <span class="pl-num">${String(i + 1).padStart(2, '0')}</span>
       <span class="pl-name">${esc(t.title)}</span>
-      <span class="pl-dur">${t.dur||''}</span>
+      <span class="pl-dur">${t.dur || ''}</span>
     </div>`
   ).join('');
   document.getElementById('pl-cnt').textContent = tracks.length + ' tracks';
 }
-function esc(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 
-/* ── URL 파싱: 재생목록 / v+list / 단일영상 모두 처리 ── */
-async function loadPL(){
-  const raw   = document.getElementById('url-in').value.trim();
-  const listM = raw.match(/[?&]list=([A-Za-z0-9_-]+)/);
-  const vidM  = raw.match(/[?&]v=([A-Za-z0-9_-]+)/);
-
-  // 단일 영상 (list 없음)
-  if(vidM && !listM){
-    tracks = [{ id: vidM[1], title: 'Single Track', dur: '' }];
-    renderPL(); setStatus('ready', false); loadTrack(0);
-    return;
-  }
-
-  if(!listM){
-    alert('유효한 유튜브 URL을 입력해주세요.\n• 재생목록: ?list=PLxxx\n• 영상+목록: ?v=xxx&list=PLxxx');
-    return;
-  }
-
-  const API_KEY = 'AIzaSyDanv3ZS7kgAxAZUwKtxF4__KqdDY6nAUI';
-  if(API_KEY === 'YOUR_API_KEY_HERE'){ demoMode(); return; }
-
-  setStatus('loading...', true);
-  try {
-    const res  = await fetch(
-      `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&maxResults=50&playlistId=${listM[1]}&key=${API_KEY}`
-    );
-    const data = await res.json();
-    if(data.error){ demoMode(); return; }
-
-    tracks = data.items.map(item=>({
-      id:    item.contentDetails.videoId,
-      title: item.snippet.title,
-      dur:   ''
-    }));
-
-    // v= 파라미터가 있으면 해당 영상부터 시작
-    let startIdx = 0;
-    if(vidM){
-      const found = tracks.findIndex(t => t.id === vidM[1]);
-      if(found !== -1) startIdx = found;
-    }
-
-    renderPL(); setStatus('ready', false);
-    if(tracks.length) loadTrack(startIdx);
-  } catch(e){ demoMode(); }
-}
-
-function demoMode(){
-  tracks = [
-    { id:'dQw4w9WgXcQ', title:'Never Gonna Give You Up', dur:'3:33' },
-    { id:'L_jWHffIx5E', title:'Smells Like Teen Spirit',  dur:'5:01' },
-    { id:'9bZkp7q19f0', title:'Gangnam Style',             dur:'4:14' },
-    { id:'hT_nvWreIhg', title:"Can't Stop the Feeling",   dur:'3:56' },
-    { id:'kffacxfA7G4', title:'Shape of You',             dur:'3:53' },
-  ];
-  document.getElementById('url-in').value = '';
-  renderPL(); setStatus('demo', false); loadTrack(0);
-  alert('API 키를 설정하면 실제 재생목록을 불러올 수 있어요!\n지금은 데모 모드로 실행합니다.');
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
 }
 </script>
+</body>
+</html>
