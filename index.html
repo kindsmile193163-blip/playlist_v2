@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CD Player</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #fff; font-family: 'Georgia', 'Times New Roman', serif; }
+
+.page {
+  width: 100%; max-width: 420px; margin: 0 auto;
+  padding: 1.5rem 1rem 2.5rem;
+  display: flex; flex-direction: column; align-items: center; gap: 1rem;
+}
+
+/* ── Player 본체 ── */
+.player {
+  width: 100%; background: #fff;
+  border: 1.5px solid #e0dbd2; border-radius: 20px; overflow: hidden;
+  box-shadow: 0 2px 18px rgba(0,0,0,0.07);
+}
+.coral-strip {
+  height: 11px;
+  background: repeating-linear-gradient(90deg,#e8857a 0,#e8857a 4px,#f0a09a 4px,#e8857a 8px);
+}
+.player-inner { padding: 1.1rem 1.1rem 1.3rem; }
+
+/* ── 투명 덮개 ── */
+.lid {
+  background: rgba(220,218,215,0.18);
+  border: 1px solid rgba(200,195,188,0.38);
+  border-radius: 10px 10px 0 0; border-bottom: none;
+  padding: .6rem .9rem .55rem; position: relative;
+}
+.lid-hinge {
+  position: absolute; top: 0; right: 18px;
+  width: 20px; height: 9px;
+  background: #ccc8c0; border-radius: 0 0 5px 5px; border: 1px solid #b8b4ac;
+}
+.lid-row { display: flex; align-items: center; justify-content: space-between; }
+.lid-brand { font-size: 8px; letter-spacing: 3px; color: rgba(140,130,115,.45); text-transform: uppercase; }
+.lid-status { display: flex; align-items: center; gap: .4rem; }
+.led { width: 7px; height: 7px; border-radius: 50%; background: #c8c4bc; border: 1px solid #b0aca4; transition: background .3s; }
+.led.on { background: #e8a050; animation: ledpulse .9s ease-in-out infinite; }
+@keyframes ledpulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+.lid-txt { font-size: 10px; color: #8a8278; letter-spacing: .5px; }
+
+/* ── 디스크 스테이지 ── */
+.disc-stage {
+  display: flex; justify-content: center; align-items: center;
+  margin: .8rem 0 .4rem; position: relative; height: 220px;
+}
+.disc-shadow {
+  position: absolute; width: 185px; height: 185px; border-radius: 50%;
+  background: rgba(0,0,0,0.06);
+  top: 50%; left: 50%; transform: translate(-50%,-50%) translateY(5px);
+}
+.disc {
+  width: 178px; height: 178px; border-radius: 50%;
+  position: relative; z-index: 2; flex-shrink: 0;
+}
+.disc-bg {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: #d8d4cc; overflow: hidden; border: 1px solid #c8c4bc;
+}
+.disc-img-wrap { position: absolute; inset: 0; border-radius: 50%; overflow: hidden; }
+.disc-img-wrap img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+  opacity: 0; transition: opacity .4s;
+}
+.disc-img-wrap img.loaded { opacity: 1; }
+.groove {
+  position: absolute; border-radius: 50%;
+  border: 0.5px solid rgba(0,0,0,0.08);
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  pointer-events: none; z-index: 1;
+}
+.hub { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); z-index: 5; }
+.hub-outer {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: #e0dcd4; border: 1px solid #c0bcb4;
+  display: flex; align-items: center; justify-content: center;
+}
+.hub-hole { width: 13px; height: 13px; border-radius: 50%; background: #1e1c1a; border: 1px solid #0e0c0a; }
+
+/* ── 토네암 ── */
+.tonearm-wrap {
+  position: absolute; top: 12px; right: 18px; z-index: 8;
+  transform-origin: 20px 20px;
+  transition: transform 1.4s cubic-bezier(.4,0,.2,1);
+}
+.tonearm-wrap.parked  { transform: rotate(-45deg); }
+.tonearm-wrap.playing { transform: rotate(18deg); }
+.tonearm-base {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: #e8e4dc; border: 1.5px solid #ccc8c0;
+  display: flex; align-items: center; justify-content: center;
+}
+.tonearm-pivot { width: 11px; height: 11px; border-radius: 50%; background: #aaa8a0; border: 1px solid #888480; }
+.tonearm-arm {
+  position: absolute; top: 20px; left: 20px;
+  width: 3px; height: 105px;
+  background: linear-gradient(to bottom, #d0ccc4, #e0dcd4);
+  border-radius: 2px; transform-origin: top center; transform: rotate(10deg);
+}
+.tonearm-head {
+  position: absolute; bottom: -5px; left: 50%;
+  transform: translateX(-50%) rotate(-24deg);
+  width: 14px; height: 8px; background: #ccc8c0; border-radius: 2px; border: 1px solid #a8a49c;
+}
+.tonearm-needle {
+  position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%);
+  width: 1.5px; height: 12px; background: #909088; border-radius: 1px;
+}
+
+/* ── 마퀴 ── */
+.marquee-wrap { overflow: hidden; width: 100%; margin: .3rem 0 .1rem; }
+.marquee { font-size: 10px; color: #8a8278; white-space: nowrap; display: inline-block; letter-spacing: .5px; }
+.marquee.scroll { animation: mscroll 16s linear infinite; }
+@keyframes mscroll { 0%{transform:translateX(100%)} 100%{transform:translateX(-100%)} }
+
+/* ── 프로그레스 ── */
+.prog-area { margin: .4rem 0 .5rem; }
+.prog-wrap {
+  height: 3px; background: #e0dcd6; border-radius: 2px;
+  cursor: pointer; position: relative; margin-bottom: .38rem;
+}
+.prog-fill { height: 100%; background: #9a9490; border-radius: 2px; transition: width .1s linear; }
+.prog-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: #fff; border: 2px solid #9a9490;
+  position: absolute; top: 50%; transform: translate(-50%,-50%);
+  transition: left .1s linear;
+}
+.time-row { display: flex; justify-content: space-between; }
+.time-txt { font-size: 9px; color: #b0aca8; letter-spacing: .5px; font-variant-numeric: tabular-nums; }
+
+/* ── 컨트롤 ── */
+.ctrl-row { display: flex; align-items: center; justify-content: center; gap: .55rem; margin-top: .3rem; }
+.cbtn {
+  background: #f5f3f0; border: 1px solid #d8d4ce; border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  color: #6a6460; transition: background .12s;
+}
+.cbtn:hover  { background: #eceae6; }
+.cbtn:active { transform: scale(.96); }
+.cbtn.sm { width: 32px; height: 32px; }
+.cbtn.lg { width: 50px; height: 50px; border-radius: 14px; }
+
+/* ── 플레이리스트 ── */
+.playlist-shell {
+  width: 100%; background: #fff;
+  border: 1.5px solid #e0dbd2; border-radius: 14px; overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+.pl-head {
+  background: #faf8f5; padding: .55rem 1rem;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid #e8e4de;
+}
+.pl-title { font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: #8a8278; }
+.pl-count { font-size: 9px; color: #b4b0a8; }
+.pl-list { max-height: 200px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #d8d4ce transparent; }
+.pl-item {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .48rem 1rem; border-bottom: 0.5px solid #f0ece6;
+  cursor: pointer; transition: background .1s;
+}
+.pl-item:hover { background: #faf8f5; }
+.pl-item.active { background: #f4f0ea; border-left: 2px solid #9a9490; }
+.pl-item.active .pl-num { color: #7a7470; }
+.pl-num  { font-size: 9px; color: #c0bcb4; min-width: 18px; font-variant-numeric: tabular-nums; }
+.pl-name { font-size: 10px; color: #3a3630; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-dur  { font-size: 9px; color: #c0bcb4; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="player">
+    <div class="coral-strip"></div>
+    <div class="player-inner">
+
+      <div class="lid">
+        <div class="lid-hinge"></div>
+        <div class="lid-row">
+          <div class="lid-status">
+            <div class="led" id="led"></div>
+            <span class="lid-txt" id="lid-txt">ready</span>
+          </div>
+          <span class="lid-brand">transparent · cover</span>
+        </div>
+      </div>
+
+      <div class="disc-stage">
+        <div class="disc-shadow"></div>
+        <div class="disc" id="disc">
+          <div class="disc-bg">
+            <div class="disc-img-wrap">
+              <!--
+                ✏️ CD 레이블 이미지 변경:
+                   src 를 원하는 이미지 URL 또는 ./cover.jpg 로 교체
+              -->
+              <img
+                src="https://i.ibb.co/DfxrmJj5/image.jpg"
+                crossorigin="anonymous"
+                onload="this.classList.add('loaded')"
+                onerror="this.style.display='none'" />
+            </div>
+            <div class="groove" style="width:172px;height:172px"></div>
+            <div class="groove" style="width:158px;height:158px"></div>
+            <div class="groove" style="width:142px;height:142px"></div>
+            <div class="groove" style="width:124px;height:124px"></div>
+            <div class="groove" style="width:104px;height:104px"></div>
+            <div class="groove" style="width:82px;height:82px"></div>
+          </div>
+          <div class="hub">
+            <div class="hub-outer"><div class="hub-hole"></div></div>
+          </div>
+        </div>
+
+        <div class="tonearm-wrap parked" id="arm">
+          <div class="tonearm-base"><div class="tonearm-pivot"></div></div>
+          <div class="tonearm-arm">
+            <div class="tonearm-head"><div class="tonearm-needle"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="marquee-wrap">
+        <span class="marquee" id="marquee"> </span>
+      </div>
+
+      <div class="prog-area">
+        <div class="prog-wrap" id="prog-wrap" onclick="seekByClick(event)">
+          <div class="prog-fill" id="prog-fill" style="width:0%"></div>
+          <div class="prog-dot"  id="prog-dot"  style="left:0%"></div>
+        </div>
+        <div class="time-row">
+          <span class="time-txt" id="cur-t">0:00</span>
+          <span class="time-txt" id="track-info">— / —</span>
+          <span class="time-txt" id="dur-t">0:00</span>
+        </div>
+      </div>
+
+      <div class="ctrl-row">
+        <button class="cbtn sm" onclick="prevTr()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M2 2v8M10 2L5 6l5 4V2z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="cbtn lg" onclick="togglePlay()">
+          <svg id="play-ic" width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M5 3l12 7-12 7V3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <svg id="pause-ic" style="display:none" width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M6 3v14M14 3v14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <button class="cbtn sm" onclick="nextTr()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M10 2v8M2 2l5 4-5 4V2z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="playlist-shell">
+    <div class="pl-head">
+      <span class="pl-title">Track list</span>
+      <span class="pl-count" id="pl-cnt">0 tracks</span>
+    </div>
+    <div class="pl-list" id="pl-list"></div>
+  </div>
+
+</div>
+
+<!-- HTML5 Audio -->
+<audio id="audio"></audio>
+
+<script>
+/* ================================================================
+  ✏️  여기만 수정하면 돼요!
+
+  파일 구조 예시:
+    index.html
+    music/
+      track01.mp3
+      track02.mp3
+      track03.mp3
+    cover.jpg          ← CD 레이블 이미지 (선택)
+
+  각 트랙:
+    src   : mp3 파일 경로 (index.html 기준 상대경로)
+    title : 곡 이름
+    dur   : 재생 시간 (표시용, 직접 입력)
+================================================================ */
+const TRACKS = [
+  { src: './music/track01.mp3', title: 'Track 01 - 곡 이름', dur: '3:33' },
+  { src: './music/track02.mp3', title: 'Track 02 - 곡 이름', dur: '4:21' },
+  { src: './music/track03.mp3', title: 'Track 03 - 곡 이름', dur: '3:58' },
+  // ✏️ 트랙 추가: 아래 줄 복사해서 붙여넣기
+  // { src: './music/track04.mp3', title: 'Track 04 - 곡 이름', dur: '0:00' },
+];
+/* ================================================================ */
+
+const audio = document.getElementById('audio');
+let cur = 0, isPlaying = false;
+let progTimer = null, angle = 0, rafId = null;
+
+/* ── 오디오 이벤트 ── */
+audio.addEventListener('play',  () => setPlaying(true));
+audio.addEventListener('pause', () => setPlaying(false));
+audio.addEventListener('ended', () => { setPlaying(false); nextTr(); });
+audio.addEventListener('timeupdate', updateProg);
+audio.addEventListener('loadedmetadata', () => {
+  document.getElementById('dur-t').textContent = fmt(audio.duration);
+});
+audio.addEventListener('error', () => {
+  document.getElementById('lid-txt').textContent = '파일 오류';
+  nextTr();
+});
+
+/* ── 재생 상태 ── */
+function setPlaying(v) {
+  isPlaying = v;
+  document.getElementById('play-ic').style.display  = v ? 'none'  : 'block';
+  document.getElementById('pause-ic').style.display = v ? 'block' : 'none';
+  document.getElementById('led').className  = 'led' + (v ? ' on' : '');
+  document.getElementById('lid-txt').textContent = v ? 'now playing' : 'paused';
+  document.getElementById('arm').className  = 'tonearm-wrap ' + (v ? 'playing' : 'parked');
+  if (v) { cancelAnimationFrame(rafId); spinDisc(); }
+  else   { cancelAnimationFrame(rafId); }
+}
+
+/* ── 재생 / 일시정지 ── */
+function togglePlay() {
+  if (isPlaying) {
+    audio.pause();
+  } else {
+    audio.play().catch(() => {
+      document.getElementById('lid-txt').textContent = '재생 오류';
+    });
+  }
+}
+
+/* ── 트랙 로드 ── */
+function loadTrack(idx, autoplay) {
+  cur = idx;
+  const t = TRACKS[idx];
+  audio.src = t.src;
+  audio.load();
+  if (autoplay) {
+    audio.play().catch(() => {
+      document.getElementById('lid-txt').textContent = '재생 오류';
+    });
+  }
+  document.getElementById('track-info').textContent = (idx + 1) + ' / ' + TRACKS.length;
+  const m = document.getElementById('marquee');
+  m.textContent = t.title + '   ';
+  m.className = 'marquee scroll';
+  document.getElementById('prog-fill').style.width = '0%';
+  document.getElementById('prog-dot').style.left   = '0%';
+  document.getElementById('cur-t').textContent = '0:00';
+  document.getElementById('dur-t').textContent = t.dur || '0:00';
+  renderPL();
+}
+
+function prevTr() { if (cur > 0) loadTrack(cur - 1, true); }
+function nextTr() { if (cur < TRACKS.length - 1) loadTrack(cur + 1, true); }
+
+/* ── 프로그레스 클릭으로 탐색 ── */
+function seekByClick(e) {
+  if (!audio.duration) return;
+  const r = e.currentTarget.getBoundingClientRect();
+  audio.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * audio.duration;
+}
+
+/* ── 프로그레스 업데이트 ── */
+function updateProg() {
+  if (!audio.duration) return;
+  const p = (audio.currentTime / audio.duration) * 100;
+  document.getElementById('prog-fill').style.width = p.toFixed(1) + '%';
+  document.getElementById('prog-dot').style.left   = p.toFixed(1) + '%';
+  document.getElementById('cur-t').textContent = fmt(audio.currentTime);
+}
+
+function fmt(s) {
+  s = Math.floor(s);
+  return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60);
+}
+
+/* ── CD 회전 ── */
+function spinDisc() {
+  if (!isPlaying) return;
+  angle = (angle + 0.55) % 360;
+  document.getElementById('disc').style.transform = 'rotate(' + angle + 'deg)';
+  rafId = requestAnimationFrame(spinDisc);
+}
+
+/* ── 플레이리스트 렌더링 ── */
+function renderPL() {
+  const el = document.getElementById('pl-list');
+  el.innerHTML = TRACKS.map((t, i) =>
+    `<div class="pl-item${i === cur ? ' active' : ''}" onclick="loadTrack(${i}, true)">
+      <span class="pl-num">${String(i + 1).padStart(2, '0')}</span>
+      <span class="pl-name">${esc(t.title)}</span>
+      <span class="pl-dur">${t.dur || ''}</span>
+    </div>`
+  ).join('');
+  document.getElementById('pl-cnt').textContent = TRACKS.length + ' tracks';
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+/* ── 초기화 ── */
+loadTrack(0, false);
+</script>
+</body>
+</html>
